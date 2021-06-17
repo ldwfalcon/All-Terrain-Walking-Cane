@@ -1,6 +1,4 @@
 import serial
-def readSensors(x)
-import serial
 def readSensors():
   with serial.Serial('/dev/ttyUSB0', 57600) as ser:
           x= ser.readline()
