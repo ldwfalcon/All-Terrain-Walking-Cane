@@ -7,24 +7,25 @@ def readSensors():
           character = list(msgString)
           msg = ''.join(character[1:100])
           msg2 =  (msg.strip("'")).split(",")
+          redRawSensVal = msg2[0].strip("'red: ")
+          greenRawSensVal
+          yellowRawSensVal
+          #read red
           
-          #ref read
-          if msg2[0].strip("red: ") != "error":
-              rawMsgRed =  float(msg2[0].strip("'red: "))#remove 'red: ' from string and co
+          if redSense != "error":
+              rawMsgRed =  float(redSens)#remove 'red: ' from string and co
           else:
-              print("error")
+              print("Error with Red. ")
               
-              #green read
-          if msg2[0].strip("red: ") != "error":
-              rawMsgRed =  float(msg2[0].strip("'red: "))
+              #read green 
+          if msg2[1].strip("green: ") != "error":
+              rawMsgGreen =  float(msg2[1].strip("green: "))
           else:
-              print("error")
+              print("Error with Green. ")
               
-              # yellow read
-          if msg2[0].strip("red: ") != "error":
-              rawMsgRed =  float(msg2[0].strip("'red: "))
+              #read yellow 
+          if msg2[2].strip("yellow: ") != "error":
+              rawMsgYellow =  float(msg2[2].strip("yellow: "))
           else:
-              print("error")
-def readRedx():
-    
-
+              print("Error with Yellow. ")
+readSensors()
