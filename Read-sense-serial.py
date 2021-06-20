@@ -10,8 +10,8 @@ def readSensors(a):
           redRawSensVal = msg2[0].strip("'red: ")
           greenRawSensVal = msg2[1].strip("green: ")
           yellowRawSensVal = msg2[2].strip("yellow: ")
-          #read red
-          
+         
+          #read red   
           if redRawSensVal != "error":
               rawMsgRed =  float(redRawSensVal)#remove 'red: ' from string and co'
           else:
@@ -30,31 +30,32 @@ def readSensors(a):
               print("Error with Yellow. ")
               
 
-          if a.count(',') == 0:
-              print('hi')
+          if a.count(',') == 0: #if there are no ',' then only one HX711 value was requested
               if a == 'red':
                   print(rawMsgRed)
-              if a == 'green':
+              elif a == 'green':
                   print(rawMsgGreen)
-              if a == 'yellow':
+              elif a == 'yellow':
                   print(rawMsgYellow)
-          if a.count(',') == 1:
-              colorRequest = a.strip(', ')
-              print('hi1')
+          if a.count(',') == 1: #if there is 1 ',' then two HX711 values were requested
+
+              colorRequest = a.split(",") #split input at the commas
+              print(colorRequest)
               for i in range(2):
-                  if a[i] == 'red':
+                  if colorRequest[i] == 'red':
                       print(rawMsgRed)
-                  if a[i] == 'green':
+                  if colorRequest[i] == 'green':
                       print(rawMsgGreen)
-                  if a[i] == 'yellow':
+                  if colorRequest[i] == 'yellow':
                       print(rawMsgYellow)
-          if a.count(',') == 2:
-              print('hi2')
-              colorRequest = a.strip(', ')
+          if a.count(',') == 2: #if there are 2 ',' then three HX711 values were requested
+              colorRequest = a.split(', ')
               for i in range(3):
-                  if a[i] == 'red':
+                  if colorRequest[i] == 'red':
                       print(rawMsgRed)
-                  if a[i] == 'green':
+                  elif colorRequest[i] == 'green':
                       print(rawMsgGreen)
-                  if a[i] == 'yellow':
+                  elif colorRequest[i] == 'yellow':
                       print(rawMsgYellow)
+readSensors("red , red, yellow")
+
