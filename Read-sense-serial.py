@@ -1,5 +1,5 @@
 import serial
-def readSensors(a):
+def reqRawSens(a):
     with serial.Serial('/dev/ttyUSB0', 57600) as ser:
           x= ser.readline()
           l = x.rstrip()
@@ -10,52 +10,53 @@ def readSensors(a):
           redRawSensVal = msg2[0].strip("'red: ")
           greenRawSensVal = msg2[1].strip("green: ")
           yellowRawSensVal = msg2[2].strip("yellow: ")
-         
+          global rawRed
+          global rawGreen
+          global rawYellow
           #read red   
           if redRawSensVal != "error":
               rawMsgRed =  float(redRawSensVal)#remove 'red: ' from string and co'
           else:
-              print("Error with Red. ")
+              print("Error with raw Red. ")
               
               #read green 
           if greenRawSensVal != "error":
               rawMsgGreen =  float(greenRawSensVal)
           else:
-              print("Error with Green. ")
+              print("Error with raw Green. ")
               
               #read yellow 
           if yellowRawSensVal != "error":
               rawMsgYellow =  float(yellowRawSensVal)
           else:
-              print("Error with Yellow. ")
+              print("Error with raw Yellow. ")
               
 
           if a.count(',') == 0: #if there are no ',' then only one HX711 value was requested
               if a == 'red':
-                  print(rawMsgRed)
+                  rawRed = rawMsgRed
               elif a == 'green':
-                  print(rawMsgGreen)
+                  rawGreen = rawMsgGreen
               elif a == 'yellow':
-                  print(rawMsgYellow)
+                  rawYellow = rawMsgYellow
+                  
           if a.count(',') == 1: #if there is 1 ',' then two HX711 values were requested
-
-              colorRequest = a.split(",") #split input at the commas
-              print(colorRequest)
+              colorRequest = a.split(', ') #split input at the commas
               for i in range(2):
                   if colorRequest[i] == 'red':
-                      print(rawMsgRed)
+                      rawRed =rawMsgRed
                   if colorRequest[i] == 'green':
-                      print(rawMsgGreen)
+                      rawGreen = rawMsgGreen
                   if colorRequest[i] == 'yellow':
-                      print(rawMsgYellow)
+                      rawYellow = rawMsgYellow
+                      
           if a.count(',') == 2: #if there are 2 ',' then three HX711 values were requested
               colorRequest = a.split(', ')
               for i in range(3):
                   if colorRequest[i] == 'red':
-                      print(rawMsgRed)
-                  elif colorRequest[i] == 'green':
-                      print(rawMsgGreen)
-                  elif colorRequest[i] == 'yellow':
-                      print(rawMsgYellow)
-readSensors("red , red, yellow")
-
+                      rawRed = rawMsgRed
+                  if colorRequest[i] == 'green':
+                      rawGreen = rawMsgGreen
+                  if colorRequest[i] == 'yellow':
+                      rawYellow = rawMsgYellow
+                      
