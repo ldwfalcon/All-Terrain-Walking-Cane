@@ -1,5 +1,6 @@
 import serial
-def reqRawSens(a):
+
+def reqRawSens(a): #a is the input that requests what sensor values want to be known
     with serial.Serial('/dev/ttyUSB0', 57600) as ser:
           x= ser.readline()
           l = x.rstrip()
@@ -13,6 +14,7 @@ def reqRawSens(a):
           global rawRed
           global rawGreen
           global rawYellow
+        
           #read red   
           if redRawSensVal != "error":
               rawMsgRed =  float(redRawSensVal)#remove 'red: ' from string and co'
@@ -31,7 +33,6 @@ def reqRawSens(a):
           else:
               print("Error with raw Yellow. ")
               
-
           if a.count(',') == 0: #if there are no ',' then only one HX711 value was requested
               if a == 'red':
                   rawRed = rawMsgRed
@@ -59,4 +60,3 @@ def reqRawSens(a):
                       rawGreen = rawMsgGreen
                   if colorRequest[i] == 'yellow':
                       rawYellow = rawMsgYellow
-                      
