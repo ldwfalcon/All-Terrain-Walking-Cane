@@ -1,6 +1,5 @@
 import serial
-
-def reqRawSens(a): #a is the input that requests what sensor values want to be known
+def reqRawSens(a):
     with serial.Serial('/dev/ttyUSB0', 57600) as ser:
           x= ser.readline()
           l = x.rstrip()
@@ -14,33 +13,28 @@ def reqRawSens(a): #a is the input that requests what sensor values want to be k
           global rawRed
           global rawGreen
           global rawYellow
-        
           #read red   
           if redRawSensVal != "error":
               rawMsgRed =  float(redRawSensVal)#remove 'red: ' from string and co'
           else:
               print("Error with raw Red. ")
-              
               #read green 
           if greenRawSensVal != "error":
               rawMsgGreen =  float(greenRawSensVal)
           else:
-              print("Error with raw Green. ")
-              
+              print("Error with raw Green. ")   
               #read yellow 
           if yellowRawSensVal != "error":
               rawMsgYellow =  float(yellowRawSensVal)
           else:
               print("Error with raw Yellow. ")
-              
           if a.count(',') == 0: #if there are no ',' then only one HX711 value was requested
               if a == 'red':
                   rawRed = rawMsgRed
               elif a == 'green':
                   rawGreen = rawMsgGreen
               elif a == 'yellow':
-                  rawYellow = rawMsgYellow
-                  
+                  rawYellow = rawMsgYellow     
           if a.count(',') == 1: #if there is 1 ',' then two HX711 values were requested
               colorRequest = a.split(', ') #split input at the commas
               for i in range(2):
@@ -50,7 +44,6 @@ def reqRawSens(a): #a is the input that requests what sensor values want to be k
                       rawGreen = rawMsgGreen
                   if colorRequest[i] == 'yellow':
                       rawYellow = rawMsgYellow
-                      
           if a.count(',') == 2: #if there are 2 ',' then three HX711 values were requested
               colorRequest = a.split(', ')
               for i in range(3):
@@ -60,3 +53,10 @@ def reqRawSens(a): #a is the input that requests what sensor values want to be k
                       rawGreen = rawMsgGreen
                   if colorRequest[i] == 'yellow':
                       rawYellow = rawMsgYellow
+                      
+reqRawSens('green, red')
+print(rawRed)
+reqRawSens('green')
+print(rawGreen)
+
+
