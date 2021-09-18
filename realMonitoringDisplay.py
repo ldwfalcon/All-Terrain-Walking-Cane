@@ -5,6 +5,8 @@ import numpy as np
 import random
 import serial
 from sensorInfo import reqRawSens
+from sensorCalibration import calibrate
+from matplotlib.widgets import CheckButtons
 
 
 #initialize serial port
@@ -29,6 +31,9 @@ yGreen = []
 yYellow = []
 yMaxList = []
 yMinList = []
+redCal = calibrate('red')
+greenCal = calibrate('green')
+yellowCal = calibrate('yellow')
 # This function is called periodically from FuncAnimation
 def animate(o, xs, yRed):
 
@@ -36,9 +41,9 @@ def animate(o, xs, yRed):
 
 	# Add x and y to lists
     xs.append(o)
-    yRed.append(reqRawSens('red')[0])
-    yGreen.append(reqRawSens('green')[0])
-    yYellow.append(reqRawSens('yellow')[0])
+    yRed.append(reqRawSens('red')[0]-redCal)
+    yGreen.append(reqRawSens('green')[0]-greenCal)
+    yYellow.append(reqRawSens('yellow')[0]-yellowCal)
 
     # Limit x and y lists to 20 items
     #xs = xs[-20:]
@@ -51,17 +56,20 @@ def animate(o, xs, yRed):
     yMinList.clear()
     yMaxList.extend([max(yRed), max(yGreen), max(yYellow)])
     yMinList.extend([min(yRed), min(yGreen), min(yYellow)])
+    yMin = min(yMinList)
+    yMax = max(yMaxList)
     if max(yMaxList) - min(yMinList) < 10 : #the minimum difference in maxY and minY is 10, if it is not met, the min and max are creating by finding the middle of the min and max
-        maxY = (max(yMaxList)+min(yMinList))/2+5
-        minY = (max(yMaxList)+min(yMinList))/2-5
+        maxY = (yMax+yMin)/2+5
+        minY = (yMax+yMin)/2-5
     else:
-        maxY = max(yMaxList) + 5 #makes sure that the min and max can clearly be seen by adding some space
-        minY = min(yMinList) -5 
+        maxY = yMax + (yMax-yMin)/20 #makes sure that the min and max can clearly be seen by adding some space
+        minY = yMin - (yMax-yMin)/20 
     # Draw x and y lists
     ax.clear()
     ax.plot(xs, yRed, label="Red")
     ax.plot(xs, yGreen, label="Green")
     ax.plot(xs, yYellow, label="Yellow")
+    
     # Format plot
     plt.xticks(rotation=45, ha='right')
     plt.subplots_adjust(bottom=0.30)
@@ -69,13 +77,17 @@ def animate(o, xs, yRed):
     plt.ylabel('Relative frequency')
     plt.legend()
     plt.axis([minX, minX+Xrange, minY, maxY]) #Use for arbitrary number of trials
+    
     #plt.axis([1, 100, 0, 1.1]) #Use for 100 trial demo
     if o >= Xrange: #removes the 25th number of the list
         del xs[-Xrange]
         del yRed[-Xrange]
         del yGreen[-Xrange]
         del yYellow[-Xrange]
+
 # Set up plot to call animate() function periodically
 ani = animation.FuncAnimation(fig, animate, fargs=(xs, yRed), interval=50)
+
 plt.show()
+
 
