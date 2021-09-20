@@ -5,7 +5,6 @@ import numpy as np
 import random
 import serial
 from sensorInfo import reqRawSens
-from sensorCalibration import calibrate
 from matplotlib.widgets import CheckButtons
 
 
@@ -21,6 +20,12 @@ o = int(line_as_lists[0])
 if ser.is_open==True:
 	print("\nAll right, serial port now open. Configuration:\n")
 	print(ser, "\n") #print serial parameters
+	
+def calibrate(c):
+    output = []
+    output.append(reqRawSens(c)[0])
+    return output[0] #returns all the information requested as a list
+
 Xrange = 25 # length of X graph data
 # Create figure for plotting
 fig = plt.figure()
