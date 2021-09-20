@@ -24,7 +24,8 @@ if ser.is_open==True:
 Xrange = 25 # length of X graph data
 # Create figure for plotting
 fig = plt.figure()
-ax = fig.add_subplot(1, 1, 1)
+ax = fig.add_subplot(2, 1, 1)
+axs = fig.add_subplot(2, 1, 2)
 xs = [] #store trials here (n)
 yRed = [] #store relative frequency here
 yGreen = []
@@ -36,6 +37,7 @@ greenCal = calibrate('green')
 yellowCal = calibrate('yellow')
 # This function is called periodically from FuncAnimation
 def animate(o, xs, yRed):
+    circle1 = plt.Circle((2, 2), 2, color='r')
 
 #Aquire and parse data from serial port
 
@@ -44,7 +46,6 @@ def animate(o, xs, yRed):
     yRed.append(reqRawSens('red')[0]-redCal)
     yGreen.append(reqRawSens('green')[0]-greenCal)
     yYellow.append(reqRawSens('yellow')[0]-yellowCal)
-
     # Limit x and y lists to 20 items
     #xs = xs[-20:]
     #yRed = yRed[-20:]
@@ -66,19 +67,29 @@ def animate(o, xs, yRed):
         minY = yMin - (yMax-yMin)/20 
     # Draw x and y lists
     ax.clear()
-    ax.plot(xs, yRed, label="Red")
-    ax.plot(xs, yGreen, label="Green")
-    ax.plot(xs, yYellow, label="Yellow")
+    plt.subplot(211)
+    ax.add_patch(circle1)
+    ax.plot(xs, yRed, label="Red", color = 'red')
+    ax.plot(xs, yGreen, label="Green", color = 'lightgreen')
+    ax.plot(xs, yYellow, label="Yellow", color = 'orange')
     
     # Format plot
     plt.xticks(rotation=45, ha='right')
-    plt.subplots_adjust(bottom=0.30)
     plt.title('This is how I roll...')
     plt.ylabel('Relative frequency')
-    plt.legend()
     plt.axis([minX, minX+Xrange, minY, maxY]) #Use for arbitrary number of trials
-    
-    #plt.axis([1, 100, 0, 1.1]) #Use for 100 trial demo
+    ax.legend
+
+    width = 1       # the width of the bars: can also be len(x) sequence
+    axs.clear()
+    if o > 1:
+        totalWeight= yRed[2]+yGreen[2]+yYellow[2]+1
+        axs.bar('Red', yRed[2]/totalWeight, width, yerr=0, bottom = 0,label='Red', color = 'red') #yerr is the error line length
+        axs.bar('Green', yGreen[2]/totalWeight, width, yerr=0, bottom = 0,label='Green', color = 'lightgreen')
+        axs.bar('Yellow', yYellow[2]//totalWeight, width, yerr=0, bottom = 0,label='Yellow', color = 'orange')
+    axs.set_ylabel('Scores')
+    axs.set_title('Scores by group and gender')
+    axs.legend()
     if o >= Xrange: #removes the 25th number of the list
         del xs[-Xrange]
         del yRed[-Xrange]
