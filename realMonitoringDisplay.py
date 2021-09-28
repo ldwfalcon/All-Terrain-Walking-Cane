@@ -7,7 +7,7 @@ import serial
 from sensorInfo import reqRawSens
 from matplotlib.widgets import Button
 import math
-
+from pynput.keyboard import Key, Listener
 
 #initialize serial port
 ser = serial.Serial()
@@ -21,56 +21,45 @@ o = int(line_as_lists[0])
 if ser.is_open==True:
 	print("\nAll right, serial port now open. Configuration:\n")
 	print(ser, "\n") #print serial parameters
-	
+
+def sqrt(s): #so that can use sqrt to square root somehting
+    return s**0.5
+
 def calibrate(c):
     output = []
     output.append(reqRawSens(c)[0])
     return output[0] #returns all the information requested as a list
 
-Xrange = 18 # length of X graph data
+Xrange = 25 # length of X graph data
 # Create figure for plotting
-
-fig = plt.figure(figsize= (9,7))
-fig.patch.set_facecolor('darkgrey')
-
-ax = fig.add_subplot()
-ax.set_facecolor('grey')
+fig = plt.figure()
+ax = fig.add_subplot(2, 1, 1)
+axs = fig.add_subplot(2, 1, 2)
 xs = [] #store trials here (n)
 yRed = [] #store relative frequency here
 yGreen = []
 yYellow = []
-yRed2 = [] #store relative frequency here
-yGreen2 = []
-yYellow2 = []
-yRedAv = [] #to be used to store average 
-yGreenAv = []
-yYellowAv = []
 yMaxList = []
 yMinList = []
-oStore1 = 0
-redCal = calibrate('red')
-greenCal = calibrate('green')
-yellowCal = calibrate('yellow')
+for i in range(2):
+    redCal = calibrate('red')
+    greenCal = calibrate('green')
+    yellowCal = calibrate('yellow')
+# This function is called periodically from FuncAnimation
 
 def animate(o, xs, yRed):
-
 #Aquire and parse data from serial port
-    
-	# Add x and y to lists
+
     xs.append(o)
     readings = reqRawSens('red, green, yellow') #requesting all at the same time in order to get faster reaing as it only has to go through the code once instead of fully, multiple times.
-    
     yRed.append(readings[0]-redCal)
     yGreen.append(readings[1]-greenCal)
     yYellow.append(readings[2]-yellowCal)
-
-
     # Limit x and y lists to 20 items
     #xs = xs[-20:]
     #yRed = yRed[-20:]
-
     if o >= Xrange:
-         minX = xs[-Xrange] # min X axis 
+         minX = xs[-Xrange] # min X axis
     else:
         minX = xs[-o]
     yMaxList.clear()
@@ -87,48 +76,54 @@ def animate(o, xs, yRed):
         minY = yMin - (yMax-yMin)/20 
     # Draw x and y lists
     ax.clear()
+    plt.subplot(211)
     ax.plot(xs, yRed, label="Red", color = 'red')
     ax.plot(xs, yGreen, label="Green", color = 'lightgreen')
     ax.plot(xs, yYellow, label="Yellow", color = 'orange')
-    if o >= 3:
-        if o >= 4:
-            oStore0 = o #oStore, stores the previous value of o
-            print(oStore0)
-            if oStore0 - o >= 3:
-                oStore1 = oStore1+1
-                print(oStore1)
-                if oStore1 == 3:
-                    yRedAv.append(yRed[0])
-                    yGreenAv.append(yGreen[0])
-                    yYellowAv.append(yYellow[0])
-                    ax.plot(xs, yRedAv, label="Red", color = 'red', dashes = [10,5,10,5])
-                    ax.plot(xs, yGreenAv, label="Green", color = 'lightgreen', dashes = [10,5,10,5])
-                    ax.plot(xs, yYellowAv, label="Yellow", color = 'orange', dashes = [10,5,10,5])
-                    print('etw')
-    else:
-        yRedAv.append(0)
-        yGreenAv.append(0)
-        yYellowAv.append(0)    
-
+    
     # Format plot
     plt.xticks(rotation=45, ha='right')
-
-
+    plt.title('BRUH')
+    plt.ylabel('Raw Force Data')
     plt.axis([minX, minX+Xrange, minY, maxY]) #Use for arbitrary number of trials
-    #plt.title('This is how I roll...')
-    #plt.ylabel('Relative frequency')
-    ax.legend()
-    print(min(yGreen), max(yGreen))
-    
+    ax.legend
+    totalWeight = (abs(yRed[-1])+abs(yGreen[-1])+abs(yYellow[-1])+1) # the total measured raw weight, we add 1 in order to make sure it is not equal to zero
+    n = [0.025,0.05,0.275,0.325, 0.4, 0.525, 0.7,0.875] #different possible width
+    for i in range(8):
+        if totalWeight/3 < 10*10**(i/2):
+            width = n[i]
+            break
+        elif i == 7:
+            width = 1 #max width
+
+    axs.clear()
+    if o > 0:
+        axs.bar('Red', abs(yRed[-1])/totalWeight, width, yerr=0, bottom = 0,label='Red', color = 'red') #yerr is the error line length
+        axs.bar('Green', abs(yGreen[-1])/totalWeight, width, yerr=0, bottom = 0,label='Green', color = 'lightgreen')
+        axs.bar('Yellow', abs(yYellow[-1])//totalWeight, width, yerr=0, bottom = 0,label='Yellow', color = 'orange')
+    axs.set_ylabel('% of Total Force')
+    axs.legend()
     if o >= Xrange: #removes the 25th number of the list
-        del xs[-Xrange]
-        del yRed[-Xrange]
-        del yGreen[-Xrange]
-        del yYellow[-Xrange]
-        del yRedAv[-Xrange]
-        del yGreenAv[-Xrange]
-        del yYellowAv[-Xrange] 
-# Set up plot to call animate() function periodically
-ani = animation.FuncAnimation(fig, animate, fargs=(xs, yRed), interval=1)
-plt.show()
+        del xs[0]
+        del yRed[0]
+        del yGreen[0]
+        del yYellow[0]
+ 
+def show(key):
+
+    pressed_key = str(key).replace("'", "")
+    print(" key: ", pressed_key)
+    ani = animation.FuncAnimation(fig, animate, fargs=(xs, yRed), interval=1)
+    plt.show()
+    if key == Key.esc:
+            # Stop listener
+        return 1
+
+
+    # Listener
+while 1 == 1 :
+    # Set up plot to call animate() function periodically
+	# Add x and y to lists   
+    with Listener(on_press=show) as listener:
+        listener.join()
 
