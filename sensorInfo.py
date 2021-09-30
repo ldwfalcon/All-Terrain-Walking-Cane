@@ -9,28 +9,19 @@ def reqRawSens(a):
           character = list(msgString)
           msg = ''.join(character[1:100])
           msg2 =  (msg.strip("'")).split(",")
-          redRawSensVal = msg2[1].strip("'red: ")
-          greenRawSensVal = msg2[2].strip("green: ") 
-          yellowRawSensVal = msg2[3].strip("yellow: ")
+          redRawSensVal = msg2[0].strip("'red: ")
+          greenRawSensVal = msg2[1].strip("green: ") 
+          yellowRawSensVal = msg2[2].strip("yellow: ")
           global rawRed
           global rawGreen
           global rawYellow
           #read red   
-          if redRawSensVal != "error":
-              rawMsgRed =  float(redRawSensVal)#remove 'red: ' from string and co'
-          else:
-              print("Error with raw Red. ")
-              #read green 
-          if greenRawSensVal != "error":
-              rawMsgGreen =  float(greenRawSensVal)
-          else:
-              print("Error with raw Green. ")   
-              #read yellow 
-          if yellowRawSensVal != "error":
-              rawMsgYellow =  float(yellowRawSensVal)
-          else:
-              print("Error with raw Yellow. ")
-            
+          rawMsgRed =  float(redRawSensVal)#remove 'red: ' from string and co'
+
+          rawMsgGreen =  float(greenRawSensVal)
+
+          rawMsgYellow =  float(yellowRawSensVal)
+
           requests = a.count(',') #counts how many commas there is in order to see how many items have been requested
           colorRequest = a.split(', ')
           for i in range(requests +1):  #will go through based on how many sensors were requested
