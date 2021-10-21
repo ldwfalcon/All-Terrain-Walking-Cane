@@ -3,6 +3,7 @@
 
 #include <basicMPU6050.h>
 #include "HX711.h"
+#include <millisDelay.h>
 
 //-- Input parameters:
 
@@ -58,6 +59,148 @@ float Gcalibration_factor = 2230;
 float Ycalibration_factor = 2230;
 int r = 1; //rounding number
 int i = 1;
+const int red = 12;      // the number of the LED pin
+const int redLow = 11;
+const int black = 10;
+const int blackLow = 9;
+const int blue = 8;
+const int blueLow = 7;
+millisDelay realDelay;
+int loopcountkeeper = 0;
+int haslifted = 0; // var that keeps track of whether or not the cane has been lifted
+class solenoidControl {
+  public:
+    void high() { //activate solenoids
+      digitalWrite(red, HIGH);
+      digitalWrite(black, HIGH);
+      digitalWrite(blue, HIGH);
+      digitalWrite(redLow, LOW);
+      digitalWrite(blackLow, LOW);
+      digitalWrite(blueLow, LOW);
+    }
+    void low() { //turn on "low power mode"
+      digitalWrite(redLow, HIGH);
+      digitalWrite(blackLow, HIGH);
+      digitalWrite(blueLow, HIGH);
+      digitalWrite(red, LOW);
+      digitalWrite(black, LOW);
+      digitalWrite(blue, LOW);
+    }
+    void off() { //turn off
+      digitalWrite(red, LOW);
+      digitalWrite(black, LOW);
+      digitalWrite(blue, LOW);
+      digitalWrite(redLow, LOW);
+      digitalWrite(blackLow, LOW);
+      digitalWrite(blueLow, LOW);
+    }
+};
+solenoidControl solCon;
+
+class dataRead {
+  public:
+    void sol() {
+      if (redscale.is_ready()) {
+        int a = i++;
+        redscale.set_scale(Rcalibration_factor);
+        greenscale.set_scale(Gcalibration_factor);
+        yellowscale.set_scale(Ycalibration_factor);
+        //int redreading = (((round((redscale.read()/r)))*r - red_zero2));
+        //int greenreading = (((round((greenscale.read()/r)))*r - green_zero2)*1);
+        //int yellowreading = (((round((yellowscale.read()/r)))*r - yellow_zero2)*1);
+        float redreading = redscale.get_units();
+        float greenreading = greenscale.get_units();
+        float yellowreading = yellowscale.get_units();
+        if (redreading > 2 && greenreading > 2) {
+          haslifted = 1;
+        }
+        else if ((redreading > 2 or greenreading > 2) && (redreading < 2 or greenreading < 2) && haslifted == 1) {
+          //can be used by storing data and names in a dictionary and array, then using that to now what solenoids to control.
+          if (redreading < 2) {
+            Serial.print(realDelay.justFinished());
+            if (realDelay.remaining() == 0 && loopcountkeeper == 0) {
+              digitalWrite(red, HIGH);
+              realDelay.start(1000);
+              loopcountkeeper = 1;
+            }
+            else if (realDelay.remaining() == 0 && loopcountkeeper == 1) {
+             digitalWrite(redLow, HIGH);
+             digitalWrite(red,LOW);
+
+            }
+          }
+          if (greenreading < 2) {
+            Serial.print(realDelay.justFinished());
+            if (realDelay.remaining() == 0 && loopcountkeeper == 0) {
+              digitalWrite(black, HIGH);
+              realDelay.start(1000);
+              loopcountkeeper = 1;
+            }
+            else if (realDelay.remaining() == 0 && loopcountkeeper == 1) {
+             digitalWrite(blackLow, HIGH);
+             digitalWrite(black,LOW);
+
+            }
+          }
+        }
+        else if (redreading < 2 && greenreading < 2) {
+          solCon.off();
+          if (realDelay.remaining() != 0) {
+            realDelay.stop();
+          }
+          loopcountkeeper = 0;
+          haslifted = 0;
+        }
+
+      }
+    }
+    void weight() {
+      // Update gyro calibration
+      if (redscale.is_ready()) {
+        int a = i++;
+        redscale.set_scale(Rcalibration_factor);
+        greenscale.set_scale(Gcalibration_factor);
+        yellowscale.set_scale(Ycalibration_factor);
+        //int redreading = (((round((redscale.read()/r)))*r - red_zero2)); //for being dymb and calibrating HX711 without using the HX711 calibration from the HX711 library
+        //int greenreading = (((round((greenscale.read()/r)))*r - green_zero2)*1);
+        //int yellowreading = (((round((yellowscale.read()/r)))*r - yellow_zero2)*1);
+        float redreading = redscale.get_units();
+        float greenreading = greenscale.get_units();
+        float yellowreading = yellowscale.get_units();
+        //Serial.print(a);
+        //Serial.print(" ");
+        Serial.print(redreading / 2);
+        Serial.print(" ");
+        Serial.print(greenreading / 2);
+        Serial.print(" ");
+          Serial.println(yellowreading / 2);
+
+      }
+    }
+    void gyro() {
+
+      imu.updateBias();
+
+      //-- Scaled and calibrated output:
+      // Accel
+      Serial.print(" ");
+      Serial.print( imu.ax() );
+      Serial.print( " " );
+      Serial.print( imu.ay() );
+      Serial.print( " " );
+      Serial.print( imu.az() );
+      Serial.print( " " );
+
+      // Gyro
+      Serial.print( imu.gx() );
+      Serial.print( " " );
+      Serial.print( imu.gy() );
+      Serial.print( " " );
+      Serial.print( imu.gz() );
+      Serial.println();
+
+    }
+};
 
 void setup() {
   // Set registers - Always required
@@ -80,50 +223,18 @@ void setup() {
   long Rzero_factor = redscale.read_average(); //Get a baseline reading
   long Gzero_factor = greenscale.read_average(); //Get a baseline reading
   long Yzero_factor = yellowscale.read_average(); //Get a baseline reading
-  Serial.print("Setup one");
+  pinMode(red, OUTPUT);
+  pinMode(redLow, OUTPUT);
+  pinMode(black, OUTPUT);
+  pinMode(blackLow, OUTPUT);
+  pinMode(blue, OUTPUT);
+  pinMode(blueLow, OUTPUT);
 }
-
+dataRead dtr;
 void loop() {
-  // Update gyro calibration
-  if (redscale.is_ready()) {
-    int a = i++;
-    redscale.set_scale(Rcalibration_factor);
-    greenscale.set_scale(Gcalibration_factor);
-    yellowscale.set_scale(Ycalibration_factor);
-    //int redreading = (((round((redscale.read()/r)))*r - red_zero2));
-    //int greenreading = (((round((greenscale.read()/r)))*r - green_zero2)*1);
-    //int yellowreading = (((round((yellowscale.read()/r)))*r - yellow_zero2)*1);
-    float redreading = redscale.get_units();
-    float greenreading = greenscale.get_units();
-    float yellowreading = yellowscale.get_units();
-    //Serial.print(a);
-    //Serial.print(" ");
-    Serial.print(redreading / 2);
-    Serial.print(" ");
-    Serial.print(greenreading / 2);
-    Serial.print(" ");
-    Serial.print(yellowreading / 2);
 
-  }
-
-  imu.updateBias();
-
-  //-- Scaled and calibrated output:
-  // Accel
-  Serial.print(" ");
-  Serial.print( imu.ax() );
-  Serial.print( " " );
-  Serial.print( imu.ay() );
-  Serial.print( " " );
-  Serial.print( imu.az() );
-  Serial.print( " " );
-
-  // Gyro
-  Serial.print( imu.gx() );
-  Serial.print( " " );
-  Serial.print( imu.gy() );
-  Serial.print( " " );
-  Serial.print( imu.gz() );
-  Serial.println();
+  dtr.weight();
+  
+  dtr.sol();
 
 }
