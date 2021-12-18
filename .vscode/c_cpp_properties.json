@@ -3,7 +3,11 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/Users/ldwfalcon/Documents/GitHub/All-Terrain-Walking-Cane/libraries/HX711",
+                "/Users/ldwfalcon/Documents/GitHub/All-Terrain-Walking-Cane/libraries/Sensor_info",
+                "/Users/ldwfalcon/Documents/GitHub/All-Terrain-Walking-Cane/libraries/basicMPU6050",
+                "/Users/ldwfalcon/Documents/GitHub/All-Terrain-Walking-Cane/libraries/HX711_ADC"
             ],
             "defines": [],
             "macFrameworkPath": [
@@ -12,7 +16,11 @@
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",
             "cppStandard": "c++98",
-            "intelliSenseMode": "macos-clang-x64"
+            "intelliSenseMode": "macos-clang-x64",
+            "forcedInclude": [],
+            "browse": {
+                "path": []
+            }
         }
     ],
     "version": 4
