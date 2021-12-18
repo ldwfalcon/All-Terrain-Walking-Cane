@@ -37,7 +37,7 @@ basicMPU6050<LP_FILTER, GYRO_SENS, ACCEL_SENS,
              &AX_SCALE, &AY_SCALE, &AZ_SCALE,
              &GX_SCALE, &GY_SCALE, &GZ_SCALE,
              GYRO_BAND, BIAS_COUNT>
-    imu;
+             imu;
 
 // HX711 circuit wiring
 const int LOADCELL_DOUT_PIN_RED = 13;
@@ -53,6 +53,9 @@ int yellow_zero2 = 0;
 HX711 redscale;
 HX711 greenscale;
 HX711 yellowscale;
+
+int gyroData[6];
+
 
 float Rcalibration_factor = 2230;
 float Gcalibration_factor = 2230;
@@ -82,363 +85,364 @@ const int offGround = 2; //the reading of the HX711 that will define if a leg is
 
 class solenoidControl
 {
-public:
+  public:
     void redHigh()
     {
-        digitalWrite(red, HIGH);
-        digitalWrite(redLow, LOW);
+      digitalWrite(red, HIGH);
+      digitalWrite(redLow, LOW);
     }
-    void greenHigh()[digitalWrite(green, HIGH);
-                     digitalWrite(greenLow, LOW);
-    ] void yellowHigh()
+    void greenHigh() {
+      digitalWrite(green, HIGH);
+      digitalWrite(greenLow, LOW);
+    } void yellowHigh()
     {
-        digitalWrite(yellow, HIGH);
-        digitalWrite(yellowLow, LOW);
+      digitalWrite(yellow, HIGH);
+      digitalWrite(yellowLow, LOW);
     }
-    void redLow()
+    void redLowRun()
     {
-        digitalWrite(redLow, HIGH);
-        digitalWrite(red, LOW);
+      digitalWrite(redLow, HIGH);
+      digitalWrite(red, LOW);
     }
-    void greenLow()
+    void greenLowRun()
     {
-        digitalWrite(greenLow, HIGH);
-        digitalWrite(green, LOW);
+      digitalWrite(greenLow, HIGH);
+      digitalWrite(green, LOW);
     }
-    void yellowLow()
+    void yellowLowRun()
     {
-        digitalWrite(yellowLow, HIGH);
-        digitalWrite(yellow, LOW);
+      digitalWrite(yellowLow, HIGH);
+      digitalWrite(yellow, LOW);
     }
     void redOff()
     {
-        digitalWrite(red, LOW);
-        digitalWrite(redLow, LOW);
+      digitalWrite(red, LOW);
+      digitalWrite(redLow, LOW);
     }
     void greenOff()
     {
-        digitalWrite(green, LOW);
-        digitalWrite(greenLow, LOW);
+      digitalWrite(green, LOW);
+      digitalWrite(greenLow, LOW);
     }
     void yellowOff()
     {
-        digitalWrite(yellow, LOW);
-        digitalWrite(yellowLow, LOW);
+      digitalWrite(yellow, LOW);
+      digitalWrite(yellowLow, LOW);
     }
     void high()
     { //activate solenoids
-        digitalWrite(red, HIGH);
-        digitalWrite(green, HIGH);
-        digitalWrite(yellow, HIGH);
-        digitalWrite(redLow, LOW);
-        digitalWrite(greenLow, LOW);
-        digitalWrite(yellowLow, LOW);
+      digitalWrite(red, HIGH);
+      digitalWrite(green, HIGH);
+      digitalWrite(yellow, HIGH);
+      digitalWrite(redLow, LOW);
+      digitalWrite(greenLow, LOW);
+      digitalWrite(yellowLow, LOW);
     }
     void low()
     { //turn on "low power mode"
-        digitalWrite(redLow, HIGH);
-        digitalWrite(greenLow, HIGH);
-        digitalWrite(yellowLow, HIGH);
-        digitalWrite(red, LOW);
-        digitalWrite(green, LOW);
-        digitalWrite(yellow, LOW);
+      digitalWrite(redLow, HIGH);
+      digitalWrite(greenLow, HIGH);
+      digitalWrite(yellowLow, HIGH);
+      digitalWrite(red, LOW);
+      digitalWrite(green, LOW);
+      digitalWrite(yellow, LOW);
     }
     void off()
     { //turn off
-        digitalWrite(red, LOW);
-        digitalWrite(green, LOW);
-        digitalWrite(yellow, LOW);
-        digitalWrite(redLow, LOW);
-        digitalWrite(greenLow, LOW);
-        digitalWrite(yellowLow, LOW);
+      digitalWrite(red, LOW);
+      digitalWrite(green, LOW);
+      digitalWrite(yellow, LOW);
+      digitalWrite(redLow, LOW);
+      digitalWrite(greenLow, LOW);
+      digitalWrite(yellowLow, LOW);
     }
 };
 solenoidControl solCont;
 
 class dataRead
 {
-public:
+  public:
     void weight()
     {
-        // Update gyro calibration
-        if (redscale.is_ready())
-        {
-            int a = i++;
-            redscale.set_scale(Rcalibration_factor);
-            greenscale.set_scale(Gcalibration_factor);
-            yellowscale.set_scale(Ycalibration_factor);
-            //int redreading = (((round((redscale.read()/r)))*r - red_zero2)); //for being dymb and calibrating HX711 without using the HX711 calibration from the HX711 library
-            //int greenreading = (((round((greenscale.read()/r)))*r - green_zero2)*1);
-            //int yellowreading = (((round((yellowscale.read()/r)))*r - yellow_zero2)*1);
-            float redreading = redscale.get_units();
-            float greenreading = greenscale.get_units();
-            float yellowreading = yellowscale.get_units();
-            //Serial.print(a);
-            //Serial.print(" ");
-            Serial.print(redreading / 2);
-            Serial.print(" ");
-            Serial.print(greenreading / 2);
-            Serial.print(" ");
-            Serial.println(yellowreading / 2);
-        }
+      // Update gyro calibration
+      if (redscale.is_ready())
+      {
+        int a = i++;
+        redscale.set_scale(Rcalibration_factor);
+        greenscale.set_scale(Gcalibration_factor);
+        yellowscale.set_scale(Ycalibration_factor);
+        //int redreading = (((round((redscale.read()/r)))*r - red_zero2)); //for being dymb and calibrating HX711 without using the HX711 calibration from the HX711 library
+        //int greenreading = (((round((greenscale.read()/r)))*r - green_zero2)*1);
+        //int yellowreading = (((round((yellowscale.read()/r)))*r - yellow_zero2)*1);
+        float redreading = redscale.get_units();
+        float greenreading = greenscale.get_units();
+        float yellowreading = yellowscale.get_units();
+        //Serial.print(a);
+        //Serial.print(" ");
+        Serial.print(redreading / 2);
+        Serial.print(" ");
+        Serial.print(greenreading / 2);
+        Serial.print(" ");
+        Serial.println(yellowreading / 2);
+      }
     }
     void gyro()
     {
 
-        imu.updateBias();
-        int gyroData[6];
-        //-- Scaled and calibrated output:
-        // Accel
-        gyroData[0] = imu.ax();
-        gyroData[1] = imu.ay();
-        gyroData[2] = imu.az();
-        gyroData[3] = imu.gx();
-        gyroData[4] = imu.gy();
-        gyroData[5] = imy.gz();
-        Serial.print(gyroData);
-        return gyroData
+      imu.updateBias();
+      int gyroData[6];
+      //-- Scaled and calibrated output:
+      // Accel
+      gyroData[0] = imu.ax();
+      gyroData[1] = imu.ay();
+      gyroData[2] = imu.az();
+      gyroData[3] = imu.gx();
+      gyroData[4] = imu.gy();
+      gyroData[5] = imu.gz();
+      Serial.print(gyroData[3]);
+      return gyroData;
     }
 };
 
 dataRead dtr;
 class dataAnalization
 {
-public:
+  public:
     void gyroPlane()
     {
-        int gyToL = 0.15; //⚠️Chang according to actual distance from the center of the gyro to the leg in metters.
-        data = gyroData;
-        xTheta = data[0];
-        yTheta = data[1];
-        if (xTheta = 0 && yTheta = 0)
-        {
-            redDFG = 0; //leg is on the ground
-            greenDFG = 0;
-            yellowDFG = 0;
-        }
-        else
-        {
-            redDFG = sin(gyToL * xTheta)*10;//if red is || to the x axis of the gyro
-            greenDFG = sqrt(sin(gyToL * xTheta) + sin(gyToL * yTheta))*10; //for the legs that are not || to any axis of the gyro
-            yellowDFG = sqrt(sin(gyToL * xTheta) + sin(gyToL * yTheta))*10; //uses pythagorean theorem to find the distance based on change in y and x
-        }
+      int gyToL = 0.15; //⚠️Chang according to actual distance from the center of the gyro to the leg in metters.
+      int xTheta = gyroData[0];
+      int yTheta = gyroData[1];
+      if (xTheta == 0 && yTheta == 0)
+      {
+        redDFG = 0; //leg is on the ground
+        greenDFG = 0;
+        yellowDFG = 0;
+      }
+      else
+      {
+        redDFG = sin(gyToL * xTheta) * 10; //if red is || to the x axis of the gyro
+        greenDFG = sqrt(sin(gyToL * xTheta) + sin(gyToL * yTheta)) * 10; //for the legs that are not || to any axis of the gyro
+        yellowDFG = sqrt(sin(gyToL * xTheta) + sin(gyToL * yTheta)) * 10; //uses pythagorean theorem to find the distance based on change in y and x
+      }
     }
-} dataAnalization dtAna;
+}; 
+dataAnalization dtAna;
 class actions
 {
-public:
+  public:
     void sol()
     {
-        gyro = dtr.gyro();
-        if (redscale.is_ready() && greenscale.is_ready() && yellowscale.is_ready())
+      //int gyro = dtr.gyro();
+      if (redscale.is_ready() && greenscale.is_ready() && yellowscale.is_ready())
+      {
+        int a = i++;
+        redscale.set_scale(Rcalibration_factor);
+        greenscale.set_scale(Gcalibration_factor);
+        yellowscale.set_scale(Ycalibration_factor);
+        //int redreading = (((round((redscale.read()/r)))*r - red_zero2));
+        //int greenreading = (((round((greenscale.read()/r)))*r - green_zero2)*1);
+        //int yellowreading = (((round((yellowscale.read()/r)))*r - yellow_zero2)*1);
+        float redreading = redscale.get_units();
+        float greenreading = greenscale.get_units();
+        float yellowreading = yellowscale.get_units();
+        //^^if the rading above are greater than two, then they are off the ground but if they are less than 2, then it is on the ground
+        if (redreading > offGround)
         {
-            int a = i++;
-            redscale.set_scale(Rcalibration_factor);
-            greenscale.set_scale(Gcalibration_factor);
-            yellowscale.set_scale(Ycalibration_factor);
-            //int redreading = (((round((redscale.read()/r)))*r - red_zero2));
-            //int greenreading = (((round((greenscale.read()/r)))*r - green_zero2)*1);
-            //int yellowreading = (((round((yellowscale.read()/r)))*r - yellow_zero2)*1);
-            float redreading = redscale.get_units();
-            float greenreading = greenscale.get_units();
-            float yellowreading = yellowscale.get_units();
-            //^^if the rading above are greater than two, then they are off the ground but if they are less than 2, then it is on the ground
-            if (redreading > offGround)
-            {
-                int redLeg = 1; //off the ground
-            }
-            else
-            {
-                int redLeg = 0; //on the ground
-            }
-            if (greenreading > offGround)
-            {
-                int greenLeg = 3; //these numbers are made so that their sum is special and we can know which legs
-            }
-            else
-            {
-                int greenLeg = 0;
-            }
-            if (yellowreading > offGround)
-            {
-                int yellowLeg = 5;
-            }
-            else
-            {
-                int yellowLeg = 0;
-            }
-
-            int floorLegs = redLeg + greenLeg + yellowLeg;
-
-            switch (floorLegs) //to know which and how many legs are on the floor
-            {
-            case 0:
-                totalLegs = 0; //none off, all on ground
-                haslifted = 0;
-                loopcountkeeper = 0;
-                solCont.off();
-                break;
-
-            case 1:
-                totalLegs = 1; //red off
-                break;
-
-            case 3:
-                totalLegs = 3; //green off
-                break;
-
-            case 5:
-                totalLegs = 5; //yellow off
-                break;
-
-            case 4:
-                totalLegs = 4; //red + green off
-                break;
-
-            case 6:
-                totalLegs = 6; //red + yellow off
-                break;
-
-            case 8:
-                totalLegs = 8; //green + yellow off
-                break;
-
-            case 9:
-                totalLegs = 9; //all off
-                haslifted = 1;
-                loopcountkeeper = 0;
-                solCont.off();
-                break;
-            }
-
-            if (haslifted = 1 && totalLegs < 9 && totalLegs > 0)
-            {
-                switch (totalLegs) //to know which and how many legs are on the floor
-                {
-                case 1: //green + yellow unlock
-                    if (realDelay.remaining() == 0 && loopcountkeeper == 0)
-                    {
-                        solCont.greenHigh();
-                        solCont.yellowHigh();
-                        realDelay.start(1000);
-                        loopcountkeeer = 1;
-                    }
-                    else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
-                    {
-                        solCont.greenLow();
-                        solCont.yellowLow();
-                    }
-                    break;
-
-                case 3: //red + yellow unlock
-                    if (realDelay.remaining() == 0 && loopcountkeeper == 0)
-                    {
-                        solCont.redHigh();
-                        solCont.yellowHigh();
-                        realDelay.start(1000);
-                        loopcountkeeper = 1;
-                    }
-                    else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
-                    {
-                        solCont.redLow();
-                        solCont.yellowLow();
-                    }
-                    break;
-
-                case 5: //red + green unlock
-                    if (realDelay.remaining() == 0 && loopcountkeeper == 0)
-                    {
-                        solCont.greenHigh();
-                        solCont.redHigh();
-                        realDelay.start(1000);
-                        loopcountkeeper = 1;
-                    }
-                    else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
-                    {
-                        solCont.greenLow();
-                        solCont.redLow();
-                    }
-                    break;
-
-                case 4: //yellow unlock
-                    if (realDelay.remaining() == 0 && loopcountkeeper == 0)
-                    {
-                        solCont.yellowHigh();
-                        realDelay.start(1000);
-                        loopcountkeeper = 1;
-                    }
-                    else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
-                    {
-                        solCont.yellowLow();
-                    }
-                    break;
-
-                case 6: //green unlock
-                    if (realDelay.remaining() == 0 && loopcountkeeper == 0)
-                    {
-                        solCont.greenHigh();
-                        realDelay.start(1000);
-                        loopcountkeeper = 1;
-                    }
-                    else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
-                    {
-                        solCont.greenLow();
-                    }
-                    break;
-
-                case 8: //red unlock
-                    if (realDelay.remaining() == 0 && loopcountkeeper == 0)
-                    {
-                        solCont.redHigh();
-                        realDelay.start(1000);
-                        loopcountkeeper = 1;
-                    }
-                    else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
-                    {
-                        solCont.redLow();
-                    }
-                    break;
-                }
-            }
+          int redLeg = 1; //off the ground
         }
         else
         {
-            Serial.print("Not ready");
+          int redLeg = 0; //on the ground
         }
+        if (greenreading > offGround)
+        {
+          int greenLeg = 3; //these numbers are made so that their sum is special and we can know which legs
+        }
+        else
+        {
+          int greenLeg = 0;
+        }
+        if (yellowreading > offGround)
+        {
+          int yellowLeg = 5;
+        }
+        else
+        {
+          int yellowLeg = 0;
+        }
+
+        int floorLegs = redLeg + greenLeg + yellowLeg;
+
+        switch (floorLegs) //to know which and how many legs are on the floor
+        {
+          case 0:
+            totalLegs = 0; //none off, all on ground
+            haslifted = 0;
+            loopcountkeeper = 0;
+            solCont.off();
+            break;
+
+          case 1:
+            totalLegs = 1; //red off
+            break;
+
+          case 3:
+            totalLegs = 3; //green off
+            break;
+
+          case 5:
+            totalLegs = 5; //yellow off
+            break;
+
+          case 4:
+            totalLegs = 4; //red + green off
+            break;
+
+          case 6:
+            totalLegs = 6; //red + yellow off
+            break;
+
+          case 8:
+            totalLegs = 8; //green + yellow off
+            break;
+
+          case 9:
+            totalLegs = 9; //all off
+            haslifted = 1;
+            loopcountkeeper = 0;
+            solCont.off();
+            break;
+        }
+
+        if (haslifted = 1 && totalLegs < 9 && totalLegs > 0)
+        {
+          switch (totalLegs) //to know which and how many legs are on the floor
+          {
+            case 1: //green + yellow unlock
+              if (realDelay.remaining() == 0 && loopcountkeeper == 0)
+              {
+                solCont.greenHigh();
+                solCont.yellowHigh();
+                realDelay.start(1000);
+                int loopcountkeeer = 1;
+              }
+              else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
+              {
+                solCont.greenLowRun();
+                solCont.yellowLowRun();
+              }
+              break;
+
+            case 3: //red + yellow unlock
+              if (realDelay.remaining() == 0 && loopcountkeeper == 0)
+              {
+                solCont.redHigh();
+                solCont.yellowHigh();
+                realDelay.start(1000);
+                loopcountkeeper = 1;
+              }
+              else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
+              {
+                solCont.redLowRun();
+                solCont.yellowLowRun();
+              }
+              break;
+
+            case 5: //red + green unlock
+              if (realDelay.remaining() == 0 && loopcountkeeper == 0)
+              {
+                solCont.greenHigh();
+                solCont.redHigh();
+                realDelay.start(1000);
+                loopcountkeeper = 1;
+              }
+              else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
+              {
+                solCont.greenLowRun();
+                solCont.redLowRun();
+              }
+              break;
+
+            case 4: //yellow unlock
+              if (realDelay.remaining() == 0 && loopcountkeeper == 0)
+              {
+                solCont.yellowHigh();
+                realDelay.start(1000);
+                loopcountkeeper = 1;
+              }
+              else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
+              {
+                solCont.yellowLowRun();
+              }
+              break;
+
+            case 6: //green unlock
+              if (realDelay.remaining() == 0 && loopcountkeeper == 0)
+              {
+                solCont.greenHigh();
+                realDelay.start(1000);
+                loopcountkeeper = 1;
+              }
+              else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
+              {
+                solCont.greenLowRun();
+              }
+              break;
+
+            case 8: //red unlock
+              if (realDelay.remaining() == 0 && loopcountkeeper == 0)
+              {
+                solCont.redHigh();
+                realDelay.start(1000);
+                loopcountkeeper = 1;
+              }
+              else if (realDelay.remaining() == 0 && loopcountkeeper == 1)
+              {
+                solCont.redLowRun();
+              }
+              break;
+          }
+        }
+      }
+      else
+      {
+        Serial.print("Not ready");
+      }
     }
-}
-}
+};
+
 void setup()
 {
-    // Set registers - Always required
-    imu.setup();
+  // Set registers - Always required
+  imu.setup();
 
-    // Initial calibration of gyro
-    imu.setBias();
+  // Initial calibration of gyro
+  imu.setBias();
 
-    // Start console
-    Serial.begin(57600);
-    redscale.begin(LOADCELL_DOUT_PIN_RED, LOADCELL_SCK_PIN_RED);
-    greenscale.begin(LOADCELL_DOUT_PIN_green, LOADCELL_SCK_PIN_green);
-    yellowscale.begin(LOADCELL_DOUT_PIN_yellow, LOADCELL_SCK_PIN_yellow);
-    redscale.set_scale();
-    greenscale.set_scale();
-    yellowscale.set_scale();
-    redscale.tare();
-    greenscale.tare();
-    yellowscale.tare();
-    long Rzero_factor = redscale.read_average();    //Get a baseline reading
-    long Gzero_factor = greenscale.read_average();  //Get a baseline reading
-    long Yzero_factor = yellowscale.read_average(); //Get a baseline reading
-    pinMode(red, OUTPUT);
-    pinMode(redLow, OUTPUT);
-    pinMode(green, OUTPUT);
-    pinMode(greenLow, OUTPUT);
-    pinMode(yellow, OUTPUT);
-    pinMode(yellowLow, OUTPUT);
+  // Start console
+  Serial.begin(57600);
+  redscale.begin(LOADCELL_DOUT_PIN_RED, LOADCELL_SCK_PIN_RED);
+  greenscale.begin(LOADCELL_DOUT_PIN_green, LOADCELL_SCK_PIN_green);
+  yellowscale.begin(LOADCELL_DOUT_PIN_yellow, LOADCELL_SCK_PIN_yellow);
+  redscale.set_scale();
+  greenscale.set_scale();
+  yellowscale.set_scale();
+  redscale.tare();
+  greenscale.tare();
+  yellowscale.tare();
+  long Rzero_factor = redscale.read_average();    //Get a baseline reading
+  long Gzero_factor = greenscale.read_average();  //Get a baseline reading
+  long Yzero_factor = yellowscale.read_average(); //Get a baseline reading
+  pinMode(red, OUTPUT);
+  pinMode(redLow, OUTPUT);
+  pinMode(green, OUTPUT);
+  pinMode(greenLow, OUTPUT);
+  pinMode(yellow, OUTPUT);
+  pinMode(yellowLow, OUTPUT);
 }
 void loop()
 {
-    dtr.weight();
-    dtr.sol();
+  dtr.weight();
+  dtr.sol();
 }
