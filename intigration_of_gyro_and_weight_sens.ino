@@ -201,7 +201,7 @@ class dataRead {
 
     }
 };
-
+}
 void setup() {
   // Set registers - Always required
   imu.setup();
