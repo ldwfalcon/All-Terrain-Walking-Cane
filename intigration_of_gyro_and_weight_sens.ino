@@ -61,10 +61,10 @@ int r = 1; //rounding number
 int i = 1;
 const int red = 12;      // the number of the LED pin
 const int redLow = 11;
-const int black = 10;
-const int blackLow = 9;
-const int blue = 8;
-const int blueLow = 7;
+const int green = 10;
+const int greenLow = 9;
+const int yellow = 8;
+const int yellowLow = 7;
 millisDelay realDelay;
 int loopcountkeeper = 0;
 int haslifted = 0; // var that keeps track of whether or not the cane has been lifted
@@ -72,27 +72,27 @@ class solenoidControl {
   public:
     void high() { //activate solenoids
       digitalWrite(red, HIGH);
-      digitalWrite(black, HIGH);
-      digitalWrite(blue, HIGH);
+      digitalWrite(green, HIGH);
+      digitalWrite(yellow, HIGH);
       digitalWrite(redLow, LOW);
-      digitalWrite(blackLow, LOW);
-      digitalWrite(blueLow, LOW);
+      digitalWrite(greenLow, LOW);
+      digitalWrite(yellowLow, LOW);
     }
     void low() { //turn on "low power mode"
       digitalWrite(redLow, HIGH);
-      digitalWrite(blackLow, HIGH);
-      digitalWrite(blueLow, HIGH);
+      digitalWrite(greenLow, HIGH);
+      digitalWrite(yellowLow, HIGH);
       digitalWrite(red, LOW);
-      digitalWrite(black, LOW);
-      digitalWrite(blue, LOW);
+      digitalWrite(green, LOW);
+      digitalWrite(yellow, LOW);
     }
     void off() { //turn off
       digitalWrite(red, LOW);
-      digitalWrite(black, LOW);
-      digitalWrite(blue, LOW);
+      digitalWrite(green, LOW);
+      digitalWrite(yellow, LOW);
       digitalWrite(redLow, LOW);
-      digitalWrite(blackLow, LOW);
-      digitalWrite(blueLow, LOW);
+      digitalWrite(greenLow, LOW);
+      digitalWrite(yellowLow, LOW);
     }
 };
 solenoidControl solCon;
@@ -132,13 +132,13 @@ class dataRead {
           if (greenreading < 2) {
             Serial.print(realDelay.justFinished());
             if (realDelay.remaining() == 0 && loopcountkeeper == 0) {
-              digitalWrite(black, HIGH);
+              digitalWrite(green, HIGH);
               realDelay.start(1000);
               loopcountkeeper = 1;
             }
             else if (realDelay.remaining() == 0 && loopcountkeeper == 1) {
-             digitalWrite(blackLow, HIGH);
-             digitalWrite(black,LOW);
+             digitalWrite(greenLow, HIGH);
+             digitalWrite(green,LOW);
 
             }
           }
@@ -201,7 +201,7 @@ class dataRead {
 
     }
 };
-}
+
 void setup() {
   // Set registers - Always required
   imu.setup();
@@ -225,10 +225,10 @@ void setup() {
   long Yzero_factor = yellowscale.read_average(); //Get a baseline reading
   pinMode(red, OUTPUT);
   pinMode(redLow, OUTPUT);
-  pinMode(black, OUTPUT);
-  pinMode(blackLow, OUTPUT);
-  pinMode(blue, OUTPUT);
-  pinMode(blueLow, OUTPUT);
+  pinMode(green, OUTPUT);
+  pinMode(greenLow, OUTPUT);
+  pinMode(yellow, OUTPUT);
+  pinMode(yellowLow, OUTPUT);
 }
 dataRead dtr;
 void loop() {
